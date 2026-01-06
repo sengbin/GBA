@@ -95,7 +95,28 @@ static unsigned int Utf8NextCodepoint(const char*& p)
     return 0xFFFD;
 }
 
-static void DrawGlyphMode3(unsigned int codepoint, int x, int y, u16 color)
+/**
+ * @brief 判断当前码点是否按半角宽度绘制
+ * @param codepoint Unicode 码点
+ * @return true=半角（8 像素宽），false=全角（16 像素宽）
+ */
+static inline bool IsHalfWidthCodepoint(unsigned int codepoint)
+{
+    /* 基础 ASCII 可见字符按半角处理（英文/数字/常用符号） */
+    return (codepoint >= 0x20 && codepoint <= 0x7E);
+}
+
+/**
+ * @brief 获取当前码点的像素步进宽度
+ * @param codepoint Unicode 码点
+ * @return 像素宽度（半角 8 / 全角 16）
+ */
+static inline int GetAdvanceWidth(unsigned int codepoint)
+{
+    return IsHalfWidthCodepoint(codepoint) ? 8 : 16;
+}
+
+static void DrawGlyphMode3(unsigned int codepoint, int x, int y, u16 color, int drawWidth)
 {
     const unsigned char* g = GetGlyph16x16(codepoint);
     if (!g)
@@ -107,7 +128,7 @@ static void DrawGlyphMode3(unsigned int codepoint, int x, int y, u16 color)
         const unsigned int lo = (unsigned int)g[row * 2 + 1];
         const unsigned int bits = (hi << 8) | lo;
 
-        for (int col = 0; col < 16; ++col)
+        for (int col = 0; col < drawWidth; ++col)
         {
             if (bits & (1u << (15 - col)))
             {
@@ -125,7 +146,7 @@ int Unifont_GetUtf8TextWidth16(const char* utf8)
     if (!utf8)
         return 0;
 
-    int count = 0;
+    int width = 0;
     const char* p = utf8;
     while (*p)
     {
@@ -134,9 +155,10 @@ int Unifont_GetUtf8TextWidth16(const char* utf8)
             break;
         if (cp == '\n')
             break;
-        ++count;
+
+        width += GetAdvanceWidth(cp);
     }
-    return count * 16;
+    return width;
 }
 
 void Unifont_DrawUtf8TextMode3(const char* utf8, int x, int y, u16 color)
@@ -154,8 +176,14 @@ void Unifont_DrawUtf8TextMode3(const char* utf8, int x, int y, u16 color)
         if (cp == '\n')
             break;
 
-        DrawGlyphMode3(cp, cx, y, color);
-        cx += 16;
+        const int advance = GetAdvanceWidth(cp);
+        const int drawWidth = advance;
+
+        if (cx >= 240)
+            break;
+
+        DrawGlyphMode3(cp, cx, y, color, drawWidth);
+        cx += advance;
 
         if (cx >= 240)
             break;

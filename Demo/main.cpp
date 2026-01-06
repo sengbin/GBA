@@ -208,7 +208,7 @@ int main(void)
     /* 清屏：只在初始化时清一次，背景文字绘制一次 */
     DMA3COPY(&black, (void*)0x06000000, DMA16 | (240 * 160) | DMA_SRC_FIXED);
 
-    const char* text = u8"中文测试程序"; /* 顶部显示的一行文字（UTF-8） */
+    const char* text = u8"中文测试程序abcABCａｂｃ"; /* 顶部显示的一行文字（UTF-8） */
     int textWidth = Unifont_GetUtf8TextWidth16(text);
     int textX = (240 - textWidth) / 2;
     if (textX < 0) textX = 0;

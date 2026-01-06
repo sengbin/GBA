@@ -18,7 +18,7 @@ extern "C" {
 /**
  * @brief 计算 UTF-8 文本在 Unifont 16x16 下的像素宽度
  * @param utf8 UTF-8 编码字符串
- * @return 像素宽度（每个字符固定 16 像素）
+ * @return 像素宽度（ASCII 半角 8 像素，其它字符 16 像素）
  */
 int Unifont_GetUtf8TextWidth16(const char* utf8);
 

@@ -7,6 +7,7 @@ global_func run_deferred_calls
 global_func set_deferred_call_ptrs
 
 .text
+.balign 4
 .thumb
 
 .global deferred_call_ptr

@@ -200,7 +200,7 @@ extern u8* _lastbank;
 extern int _cpu_cycles;
 
 //apack.s
-void depack(u8 *source, u8 *destination);
+void depack(const u8 *source, u8 *destination);
 
 //boot.s
 extern const u8 font[];				//from boot.s

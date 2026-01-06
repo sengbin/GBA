@@ -305,6 +305,22 @@ void drawui2()
 	print_2("Region: ",cntrtxt[region]);
 }
 
+#if EDITFOLLOW
+/** 读取跟随地址，避免越界访问 */
+static inline u16 read_follow_address(void)
+{
+	uintptr_t base = (uintptr_t)&scaling;
+	return *((u16*)(base + 1));
+}
+
+/** 写入跟随地址，避免越界访问 */
+static inline void write_follow_address(u16 value)
+{
+	uintptr_t base = (uintptr_t)&scaling;
+	*((u16*)(base + 1)) = value;
+}
+#endif
+
 void drawui3()
 {
 	int row=0;
@@ -315,7 +331,7 @@ void drawui3()
 	print_2("Gamma: ",brightxt[(int)gammavalue]);
 	#if EDITFOLLOW
 	print_2("Sprite Follow by: ",followtxt[(emuflags & 32)>>5]);		//MEMFOLLOW=32
-	print_2(followtxt2[(emuflags & 32)>>5],hex4(*((short*)((&scaling)+1))));
+	print_2(followtxt2[(emuflags & 32)>>5],hex4(read_follow_address()));
 	#endif
 	
 }
@@ -886,9 +902,9 @@ void selectfollowaddress()
 {
 	unsigned short followaddress;
 	drawui3();
-	followaddress=(*((short*)((&scaling)+1)));
+	followaddress=read_follow_address();
 	followaddress=inputhex(4,strlen(followtxt2[(emuflags & 32)>>5]),followaddress,4);
-	(*((short*)((&scaling)+1)))=followaddress;
+	write_follow_address(followaddress);
 }
 #endif
 

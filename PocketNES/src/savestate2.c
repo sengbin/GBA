@@ -9,18 +9,18 @@
 typedef u8 *save_ptr;
 typedef const u8 *load_ptr;
 #define read_u32(src,var) ((src<limit)?((var)=*((u32*)(src)),(src)+=4,4):(0))
-#define read_mem_block(dest,src,size) (memcpy((dest),(src),(size)),(src)+=(size),size)
+#define read_mem_block(dest,src,size) do { memcpy((dest),(src),(size)); (src)+=(size); } while (0)
 #define seek_ahead(src,size) ((src)+=(size))
-#define write_u32(dest,var) (*((u32*)(dest))=(var),(dest)+=4,4)
-#define write_mem_block(dest,src,size) (memcpy((dest),(src),(size)),(dest)+=(size),size)
+#define write_u32(dest,var) do { *((u32*)(dest))=(var); (dest)+=4; } while (0)
+#define write_mem_block(dest,src,size) do { memcpy((dest),(src),(size)); (dest)+=(size); } while (0)
 #else
 typedef File save_ptr;
 typedef File load_ptr;
 #define read_u32(src,var) FAT_fread(&(var),1,4,(src))
-#define read_mem_block(dest,src,size) FAT_fread ((dest),1,(size),(src))
+#define read_mem_block(dest,src,size) do { FAT_fread((dest),1,(size),(src)); } while (0)
 #define seek_ahead(src,size) (FAT_fseek((src),(size),SEEK_CUR))
 #define write_u32(dest,var) FAT_fwrite(&(var),1,4,(dest))
-#define write_mem_block(dest,src,size) FAT_fwrite ((src),1,(size),(dest))
+#define write_mem_block(dest,src,size) do { FAT_fwrite((src),1,(size),(dest)); } while (0)
 #endif
 
 typedef enum
@@ -283,7 +283,18 @@ int loadblock(load_ptr *src, u32 tag, int size)
 
 void load_old_savestate(load_ptr *src)
 {
-	read_mem_block(&emuflags,*src,8); //emuflags, scaling settings, bg mirror
+	typedef struct __attribute__((packed))
+	{
+		u8 emu_flags;
+		u8 scaling_value;
+		u8 scaling_reserved[2];
+		u32 bg_mirror;
+	} old_state_header;
+	old_state_header header = {0};
+	read_mem_block(&header,*src,sizeof(header)); //emuflags, scaling settings, bg mirror
+	emuflags = header.emu_flags;
+	scaling = header.scaling_value;
+	BGmirror = header.bg_mirror;
 	read_mem_block(NES_RAM,*src,0x800);
 	read_mem_block(NES_SRAM,*src,0x2000);
 	if (has_vram)	{

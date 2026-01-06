@@ -9,10 +9,10 @@
 typedef u8 *save_ptr;
 typedef const u8 *load_ptr;
 #define read_u32(src,var) ((src<limit)?((var)=*((u32*)(src)),(src)+=4,4):(0))
-#define read_mem_block(dest,src,size) (memcpy((dest),(src),(size)),(src)+=(size),size)
+#define read_mem_block(dest,src,size) (read_mem_block_impl((dest),&(src),(size)))
 #define seek_ahead(src,size) ((src)+=(size))
-#define write_u32(dest,var) (*((u32*)(dest))=(var),(dest)+=4,4)
-#define write_mem_block(dest,src,size) (memcpy((dest),(src),(size)),(dest)+=(size),size)
+#define write_u32(dest,var) (write_u32_impl(&(dest),(var)))
+#define write_mem_block(dest,src,size) (write_mem_block_impl(&(dest),(src),(size)))
 #else
 typedef File save_ptr;
 typedef File load_ptr;
@@ -21,6 +21,29 @@ typedef File load_ptr;
 #define seek_ahead(src,size) (FAT_fseek((src),(size),SEEK_CUR))
 #define write_u32(dest,var) FAT_fwrite(&(var),1,4,(dest))
 #define write_mem_block(dest,src,size) FAT_fwrite ((src),1,(size),(dest))
+#endif
+
+#if !MOVIEPLAYER
+static __inline int read_mem_block_impl(void *dest, load_ptr *src, int size)
+{
+	memcpy(dest, *src, size);
+	*src += size;
+	return size;
+}
+
+static __inline int write_u32_impl(save_ptr *dest, u32 var)
+{
+	*((u32*)(*dest)) = var;
+	*dest += 4;
+	return 4;
+}
+
+static __inline int write_mem_block_impl(save_ptr *dest, const void *src, int size)
+{
+	memcpy(*dest, src, size);
+	*dest += size;
+	return size;
+}
 #endif
 
 typedef enum
@@ -283,7 +306,7 @@ int loadblock(load_ptr *src, u32 tag, int size)
 
 void load_old_savestate(load_ptr *src)
 {
-	read_mem_block(&emuflags,*src,8); //emuflags, scaling settings, bg mirror
+	read_mem_block((void*)((u32)&emuflags),*src,8); //emuflags, scaling settings, bg mirror
 	read_mem_block(NES_RAM,*src,0x800);
 	read_mem_block(NES_SRAM,*src,0x2000);
 	if (has_vram)	{
@@ -700,7 +723,7 @@ void restore_more_variables_for_loadstate()
 	reset_sound_after_loadstate();
 	
 	//copy sprite tables
-	memcpy32(dmanesoambuff,nesoambuff,256);
+	memcpy32((void*)dmanesoambuff,(const void*)nesoambuff,256);
 	
 #if DIRTYTILES
 	//make all tiles dirty

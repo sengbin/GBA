@@ -389,9 +389,9 @@ stateheader* drawstates(int menutype,int *menuitems,int *menuoffset, int needed_
 	int freespace;
 	char *s=str;
 //	char s[30];
-	stateheader *selectedstate;
-	int time;
-	int selectedstatesize;
+	stateheader *selectedstate=0;
+	int time=0;
+	int selectedstatesize=0;
 	stateheader *sh=(stateheader*)(BUFFER1+4);
 
 	type=(menutype==SRAMMENU)?SRAMSAVE:STATESAVE;
@@ -1087,7 +1087,7 @@ void writeconfig()
 void findconfig()
 {
 	int i;
-	configdata *cfg2;
+	configdata *cfg2=0;
 	i=findstate(0,CONFIGSAVE,(stateheader**)&cfg2);
 	if (i>=0)
 	{
@@ -1104,7 +1104,7 @@ void readconfig() {
 	int i;
 //	configdata *cfg;
 	configdata *cfg = &CachedConfig;
-	configdata *cfg2;
+	configdata *cfg2=0;
 
 	if(!using_flashcart())
 		return;

@@ -163,15 +163,15 @@ void get_rom_map()
 			#if PRG_BANK_SIZE == 8
 			*((u8**)&readmem_6)=(u8*)sram_R;
 			*((u8**)&writemem_6)=(u8*)sram_W_func;
-			*((u8**)&memmap_6)=(u8*)(NES_RAM-0x5800);
+			*((u8**)&memmap_6)=(u8*)((u32)NES_RAM-0x5800);
 			#endif
 			#if PRG_BANK_SIZE == 4
 			*((u8**)&readmem_6)=(u8*)sram_R;
 			*((u8**)&readmem_7)=(u8*)sram_R;
 			*((u8**)&writemem_6)=(u8*)sram_W_func;
 			*((u8**)&writemem_7)=(u8*)sram_W_func;
-			*((u8**)&memmap_6)=(u8*)(NES_RAM-0x5800);
-			*((u8**)&memmap_7)=(u8*)(NES_RAM-0x5800);
+			*((u8**)&memmap_6)=(u8*)((u32)NES_RAM-0x5800);
+			*((u8**)&memmap_7)=(u8*)((u32)NES_RAM-0x5800);
 			#endif
 		}
 		else

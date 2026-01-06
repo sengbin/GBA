@@ -308,7 +308,7 @@ void drawui3()
 	print_2("Gamma: ",brightxt[(int)gammavalue]);
 	#if EDITFOLLOW
 	print_2("Sprite Follow by: ",followtxt[(emuflags & 32)>>5]);		//MEMFOLLOW=32
-	print_2(followtxt2[(emuflags & 32)>>5],hex4(*((short*)((&scaling)+1))));
+	print_2(followtxt2[(emuflags & 32)>>5],hex4(*((short*)((u32)&scaling+1))));
 	#endif
 	
 }
@@ -887,9 +887,9 @@ void selectfollowaddress()
 {
 	unsigned short followaddress;
 	drawui3();
-	followaddress=(*((short*)((&scaling)+1)));
+	followaddress=(*((short*)((u32)&scaling+1)));
 	followaddress=inputhex(4,strlen(followtxt2[(emuflags & 32)>>5]),followaddress,4);
-	(*((short*)((&scaling)+1)))=followaddress;
+	(*((short*)((u32)&scaling+1)))=followaddress;
 }
 #endif
 

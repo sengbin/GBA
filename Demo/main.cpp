@@ -8,6 +8,7 @@
 ------------------------------------------------------------------------*/
 
 #include <gba.h>
+#include "font_unifont16.h"
 
 /**
  * @brief 在 Mode 3 帧缓冲写像素
@@ -60,75 +61,6 @@ static void DrawCursor(int x, int y, u16 color, u16 bg)
     }
 }
 
-/**
- * @brief 使用内置 5x7 字模在 Mode3 上绘制一行文本（仅支持大写字母和空格）
- * @param str 要显示的字符串（建议大写 ASCII）
- * @param x 起始 X（像素）
- * @param y 起始 Y（像素）
- * @param color 文本颜色
- */
-static void DrawText(const char* str, int x, int y, u16 color)
-{
-    /*
-     * 完整 5x7 字库（索引 0 为空格，1..26 对应 A..Z）
-     * 每字符 7 行，每行低 5 位表示像素（从高位到低位为列 0..4）
-     */
-    static const uint8_t fontAZ[27][7] = {
-        /* ' ' */ {0x00,0x00,0x00,0x00,0x00,0x00,0x00},
-        /* 'A' */ {0x0E,0x11,0x11,0x1F,0x11,0x11,0x11},
-        /* 'B' */ {0x1E,0x11,0x11,0x1E,0x11,0x11,0x1E},
-        /* 'C' */ {0x0E,0x11,0x10,0x10,0x10,0x11,0x0E},
-        /* 'D' */ {0x1E,0x11,0x11,0x11,0x11,0x11,0x1E},
-        /* 'E' */ {0x1F,0x10,0x10,0x1E,0x10,0x10,0x1F},
-        /* 'F' */ {0x1F,0x10,0x10,0x1E,0x10,0x10,0x10},
-        /* 'G' */ {0x0E,0x11,0x10,0x13,0x11,0x11,0x0E},
-        /* 'H' */ {0x11,0x11,0x11,0x1F,0x11,0x11,0x11},
-        /* 'I' */ {0x0E,0x04,0x04,0x04,0x04,0x04,0x0E},
-        /* 'J' */ {0x07,0x02,0x02,0x02,0x12,0x12,0x0C},
-        /* 'K' */ {0x11,0x12,0x14,0x18,0x14,0x12,0x11},
-        /* 'L' */ {0x10,0x10,0x10,0x10,0x10,0x10,0x1F},
-        /* 'M' */ {0x11,0x1B,0x15,0x15,0x11,0x11,0x11},
-        /* 'N' */ {0x11,0x19,0x15,0x13,0x11,0x11,0x11},
-        /* 'O' */ {0x0E,0x11,0x11,0x11,0x11,0x11,0x0E},
-        /* 'P' */ {0x1E,0x11,0x11,0x1E,0x10,0x10,0x10},
-        /* 'Q' */ {0x0E,0x11,0x11,0x11,0x15,0x12,0x0D},
-        /* 'R' */ {0x1E,0x11,0x11,0x1E,0x14,0x12,0x11},
-        /* 'S' */ {0x0E,0x11,0x10,0x0E,0x01,0x11,0x0E},
-        /* 'T' */ {0x1F,0x04,0x04,0x04,0x04,0x04,0x04},
-        /* 'U' */ {0x11,0x11,0x11,0x11,0x11,0x11,0x0E},
-        /* 'V' */ {0x11,0x11,0x11,0x11,0x0A,0x0A,0x04},
-        /* 'W' */ {0x11,0x11,0x11,0x15,0x15,0x1B,0x11},
-        /* 'X' */ {0x11,0x11,0x0A,0x04,0x0A,0x11,0x11},
-        /* 'Y' */ {0x11,0x11,0x0A,0x04,0x04,0x04,0x04},
-        /* 'Z' */ {0x1F,0x02,0x04,0x08,0x10,0x10,0x1F}
-    };
-
-    int cx = x;
-    for (const char* p = str; *p; ++p)
-    {
-        char c = *p;
-        if (c >= 'a' && c <= 'z') c -= 32; /* 转大写 */
-        int idx = 0; /* 默认空格 */
-        if (c >= 'A' && c <= 'Z') idx = (c - 'A') + 1;
-
-        const uint8_t* g = fontAZ[idx];
-        for (int row = 0; row < 7; ++row)
-        {
-            uint8_t bits = g[row];
-            for (int col = 0; col < 5; ++col)
-            {
-                if (bits & (1 << (4 - col)))
-                {
-                    int px = cx + col;
-                    int py = y + row;
-                    if (px >= 0 && px < 240 && py >= 0 && py < 160)
-                        PlotPixel(px, py, color);
-                }
-            }
-        }
-        cx += 7; /* 字间距 2 像素 */
-    }
-}
 
 int main(void)
 {
@@ -143,12 +75,11 @@ int main(void)
     const u16 white = RGB5(31,31,31);
     const u16 cursorColor = RGB5(31,31,0); // 黄色
 
-    const char* text = "GBA DEMO"; /* 顶部显示的一行文字（建议使用大写字母） */
-    int len = 0; while (text[len]) ++len;
-    int textWidth = (len > 0) ? (len * 7 - 1) : 0; /* 每字符5像素宽 + 2间距 */
+    const char* textUtf8 = "你好GBA"; /* 顶部显示的一行 UTF-8 文字，支持中文 */
+    int textWidth = Unifont16_MeasureWidth(textUtf8);
     int textX = (240 - textWidth) / 2;
-    int textY = 14; /* 提高到 14 像素，避免被窗口边缘或 UI 遮挡 */
-    int minCursorY = textY + 8; /* 保留顶部安全区，避免光标遮挡文字 */
+    int textY = 8; /* 留出顶部边距，避免贴边 */
+    int minCursorY = textY + 16; /* 保留顶部安全区，避免光标遮挡文字 */
 
     while (1)
     {
@@ -174,7 +105,7 @@ int main(void)
         DrawCursor(x, y, cursorColor, black);
 
         /* 绘制顶部居中文字（最后绘制，保证可见） */
-        DrawText(text, textX, textY, white);
+        Unifont16_DrawString(textUtf8, textX, textY, white, black, 1);
     }
     return 0;
 }

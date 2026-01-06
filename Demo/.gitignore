@@ -2,3 +2,4 @@ gba-demo.elf
 gba-demo.gba
 main.o
 gba-demo.sav
+font_unifont16.o

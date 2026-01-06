@@ -1,4 +1,2 @@
-gba-demo.elf
-gba-demo.gba
-main.o
-gba-demo.sav
+bin
+obj

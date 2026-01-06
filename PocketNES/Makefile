@@ -67,7 +67,7 @@ CXXFLAGS := $(CFLAGS) \
  			-fno-rtti -fno-exceptions
 
 ASFLAGS	:=	$(ARCH)
-LDFLAGS	=	-g $(ARCH) -Wl,-Map,$(notdir $@).map
+LDFLAGS	=	-g $(ARCH) -Wl,-Map,$(notdir $@).map -Wl,--no-warn-rwx-segment
 
 #---------------------------------------------------------------------------------
 # path to tools - this can be deleted if you set the path in windows

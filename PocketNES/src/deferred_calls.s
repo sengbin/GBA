@@ -46,9 +46,11 @@ add_deferred_call:
 
 deferred_call_ptr:
 _deferred_call_ptr:
+	.align 2
 	.word 0
 deferred_call_base:
 _deferred_call_base:
+	.align 2
 	.word 0
 
 #endif

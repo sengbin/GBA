@@ -414,9 +414,9 @@ stateheader* drawstates(int menutype,int *menuitems,int *menuoffset, int needed_
 	int freespace;
 	char *s=str;
 //	char s[30];
-	stateheader *selectedstate;
-	int time;
-	int selectedstatesize;
+	stateheader *selectedstate=NULL;
+	int time=0;
+	int selectedstatesize=0;
 	stateheader *sh=(stateheader*)(BUFFER1+4);
 
 	type=(menutype==SRAMMENU)?SRAMSAVE:STATESAVE;
@@ -465,6 +465,7 @@ stateheader* drawstates(int menutype,int *menuitems,int *menuoffset, int needed_
 	{
 		//show data for the state to be created
 		sh=(stateheader*)((u8*)BUFFER3);
+		selectedstate=sh;
 		time=sh->framecount;
 		selectedstatesize=sh->size;
 		
@@ -1113,9 +1114,9 @@ void writeconfig()
 void findconfig()
 {
 	int i;
-	configdata *cfg2;
+	configdata *cfg2=NULL;
 	i=findstate(0,CONFIGSAVE,(stateheader**)&cfg2);
-	if (i>=0)
+	if (i>=0 && cfg2!=NULL)
 	{
 		config_position=((u8*)cfg2)-((u8*)BUFFER1);
 	}
@@ -1130,7 +1131,7 @@ void readconfig() {
 	int i;
 //	configdata *cfg;
 	configdata *cfg = &CachedConfig;
-	configdata *cfg2;
+	configdata *cfg2=NULL;
 
 	if(!using_flashcart())
 		return;
@@ -1138,7 +1139,7 @@ void readconfig() {
 	//	ewram_owner_is_sram=1;  //findstate sets it
 
 	i=findstate(0,CONFIGSAVE,(stateheader**)&cfg2);
-	if(i>=0) {
+	if(i>=0 && cfg2!=NULL) {
 		config_position=((u8*)cfg2)-((u8*)BUFFER1);
 		
 		i = cfg2->displaytype;					//restore display type

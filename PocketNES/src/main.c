@@ -96,6 +96,11 @@ APPEND void C_entry()
 	int i;
 	u32 temp;
 	
+	#if COMPY
+		(void)i;
+		(void)temp;
+	#endif
+	
 #if RTCSUPPORT
 	vu16 *timeregs=(u16*)0x080000c8;
 	*timeregs=1;
@@ -140,10 +145,11 @@ APPEND void C_entry()
 		}
 		s++;
 		//copy rom name
-		bytecopy(pogoshell_romname,s,32);
+		bytecopy(pogoshell_romname,(const void*)s,32);
+		pogoshell_romname[31] = '\0';
 		
 		//check for PAL-like filename
-		if(strstr_(s,"(E)") || strstr_(s,"(e)"))		//Check if it's a European rom.
+		if(strstr_(pogoshell_romname,"(E)") || strstr_(pogoshell_romname,"(e)"))		//Check if it's a European rom.
 			emuflags |= PALTIMING;
 		else
 			emuflags &= ~PALTIMING;
@@ -161,7 +167,9 @@ APPEND void C_entry()
 #endif
 	
 	bool wantToSplash = false;
+	#if ROMMENU
 	const u16* splashImage = NULL;
+	#endif
 	
 #if ROMMENU
 	if (!pogoshell)
@@ -393,7 +401,6 @@ APPEND void splash(const u16 *image)
 	bool skip = false;
 	u16 input = ~REG_P1;
 	u16 lastInput = input;
-	u16 keysHit = 0;
 	
 	REG_DISPCNT=FORCE_BLANK;	//screen OFF
 	*MEM_PALETTE=0x7FFF;			//white background

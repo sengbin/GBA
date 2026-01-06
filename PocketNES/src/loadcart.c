@@ -828,13 +828,16 @@ APPEND static u8* deferred_decompress_rom(u8 *nes_header, u8 *cachebase, int pag
 	u8* compsrc = nes_header + 20;
 	u8* compdest = cachebase;
 	u8* mem_end = (u8*)0x02040000;
-	u8* cache_end_of_rom;
+	u8* cache_end_of_rom = cachebase + 192*1024;
 	
 	u8 *const VRAM = (u8*)0x06000000; //VRAM macro is defined in Libgba, so we #undef-ed it to use it here
 	u8 *const vrom_bank_0 = VRAM + 0x0A000; //8k size
 	u8 *const vrom_bank_1 = VRAM + 0x0E000; //8k size  (24k with vrom_bank_2 folllowing it)
 	u8 *const vrom_bank_2 = VRAM + 0x10000; //16k size
 	u8 *const novrom_bank = VRAM + 0x08000; //48k size
+
+	(void)vrom_bank_0;
+	(void)vrom_bank_1;
 
 	//FIXME for pogoshell
 	u32 filesize= *(u32*)(&nes_header[-16]);
@@ -1176,7 +1179,7 @@ APPEND static u8* deferred_decompress_rom(u8 *nes_header, u8 *cachebase, int pag
 			//DEFERRED_CALL(breakpoint,0,0,0);
 
 			DEFERRED_CALL(memmove32,moveDest, memoryToMove, 7 * 16384);
-			DEFERRED_CALL(memcpy32, memoryToMove, vrom_bank_2, amountToAdvance);
+			DEFERRED_CALL(memcpy32, memoryToMove, memoryToCopy, amountToAdvance);
 			
 			cache_end_of_rom = 14 * 16384 + cachebase + 256;	//okay because 224K > 192K
 		}
@@ -1201,13 +1204,16 @@ static u8* decompress_rom(u8 *nes_header, u8 *cachebase, int page_size, int comp
 	u8* compsrc = nes_header + 20;
 	u8* compdest = cachebase;
 	u8* mem_end = (u8*)0x02040000;
-	u8* cache_end_of_rom;
+	u8* cache_end_of_rom = cachebase + 192*1024;
 
 	u8 *const VRAM = (u8*)0x06000000; //VRAM macro is defined in Libgba, so we #undef-ed it to use it here
 	u8 *const vrom_bank_0 = VRAM + 0x0A000; //8k size
 	u8 *const vrom_bank_1 = VRAM + 0x0E000; //8k size  (24k with vrom_bank_2 folllowing it)
 	u8 *const vrom_bank_2 = VRAM + 0x10000; //16k size
 	u8 *const novrom_bank = VRAM + 0x08000; //48k size
+
+	(void)vrom_bank_0;
+	(void)vrom_bank_1;
 
 	//FIXME for pogoshell
 	u32 filesize= *(u32*)(&nes_header[-16]);
@@ -1406,7 +1412,7 @@ static u8* decompress_rom(u8 *nes_header, u8 *cachebase, int page_size, int comp
 			u8 *moveDest = memoryToMove + amountToAdvance;
 			u8 *memoryToCopy = vrom_bank_2;
 			memmove32(moveDest, memoryToMove, 7 * 16384);
-			memcpy32(memoryToMove, vrom_bank_2, amountToAdvance);
+			memcpy32(memoryToMove, memoryToCopy, amountToAdvance);
 
 			cache_end_of_rom = 14 * 16384 + cachebase + 256;	//okay because 224K > 192K
 		}
@@ -1446,9 +1452,21 @@ APPEND static void init_cache_deferred(u8* nes_header)
 	
 	u8 *const extra_nametables=VRAM+0x07000; //4-screen gets this
 	
+	(void)vrom_bank_0;
+	(void)vrom_bank_1;
+	(void)vrom_bank_2;
+	(void)novrom_bank;
+	(void)extra_nametables;
+	
+	(void)vrom_bank_0;
+	(void)vrom_bank_1;
+	(void)vrom_bank_2;
+	(void)novrom_bank;
+	(void)extra_nametables;
+	
 	u8* dest;
 	u8* cachebase;
-	u8* cache_end_of_rom;
+	u8* cache_end_of_rom = NULL;
 	
 	int i;
 	
@@ -1457,6 +1475,7 @@ APPEND static void init_cache_deferred(u8* nes_header)
 	int page_size;
 	
 	bool dont_use_turbo=false;
+	(void)dont_use_turbo;
 	
 //	sprite_vram_in_use=0;
 	
@@ -1509,9 +1528,11 @@ APPEND static void init_cache_deferred(u8* nes_header)
 			breakpoint();
 		}
 	}
+	(void)doNotDecompress;
 	
 	//DECOMPRESS ROM
 	cache_end_of_rom = deferred_decompress_rom(nes_header, cachebase, page_size, comptype);
+	(void)cache_end_of_rom;
 	
 	#if MIXED_VRAM_VROM
 	if (mapper==74)
@@ -1627,9 +1648,15 @@ void init_cache(u8* nes_header, int do_reset)
 	
 	u8 *const extra_nametables=VRAM+0x07000; //4-screen gets this
 	
+	(void)vrom_bank_0;
+	(void)vrom_bank_1;
+	(void)vrom_bank_2;
+	(void)novrom_bank;
+	(void)extra_nametables;
+	
 	u8* dest;
 	u8* cachebase;
-	u8* cache_end_of_rom;
+	u8* cache_end_of_rom = NULL;
 	
 	int i;
 	
@@ -1638,6 +1665,7 @@ void init_cache(u8* nes_header, int do_reset)
 	int page_size;
 	
 	bool dont_use_turbo=false;
+	(void)dont_use_turbo;
 	
 //	sprite_vram_in_use=0;
 	

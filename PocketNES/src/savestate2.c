@@ -9,10 +9,10 @@
 typedef u8 *save_ptr;
 typedef const u8 *load_ptr;
 #define read_u32(src,var) ((src<limit)?((var)=*((u32*)(src)),(src)+=4,4):(0))
-#define read_mem_block(dest,src,size) (memcpy((dest),(src),(size)),(src)+=(size),size)
+#define read_mem_block(dest,src,size) do { memcpy((dest),(src),(size)); (src)+=(size); } while(0)
 #define seek_ahead(src,size) ((src)+=(size))
-#define write_u32(dest,var) (*((u32*)(dest))=(var),(dest)+=4,4)
-#define write_mem_block(dest,src,size) (memcpy((dest),(src),(size)),(dest)+=(size),size)
+#define write_u32(dest,var) do { *((u32*)(dest))=(var); (dest)+=4; } while(0)
+#define write_mem_block(dest,src,size) do { memcpy((dest),(src),(size)); (dest)+=(size); } while(0)
 #else
 typedef File save_ptr;
 typedef File load_ptr;
@@ -283,7 +283,8 @@ int loadblock(load_ptr *src, u32 tag, int size)
 
 void load_old_savestate(load_ptr *src)
 {
-	read_mem_block(&emuflags,*src,8); //emuflags, scaling settings, bg mirror
+	read_mem_block(&emuflags,*src,4); //emuflags, scaling settings
+	read_mem_block(&BGmirror,*src,4); //bg mirror
 	read_mem_block(NES_RAM,*src,0x800);
 	read_mem_block(NES_SRAM,*src,0x2000);
 	if (has_vram)	{

@@ -152,14 +152,23 @@ int main(void)
     int textY = 0; /* 最顶行 */
     int minCursorY = textY + 16; /* 保留顶部安全区，避免光标遮挡文字 */
 
+    /* 清屏：只在初始化时清一次，避免每帧全屏清屏导致顶行绘制赶不上扫描线 */
+    DMA3COPY(&black, (void*)0x06000000, DMA16 | (240 * 160) | DMA_SRC_FIXED);
+
+    /* 绘制顶部居中文字（只绘制一次，避免被清屏覆盖） */
+    Unifont_DrawUtf8TextMode3(text, textX, textY, white);
+
+    int prevX = x;
+    int prevY = y;
+
     while (1)
     {
         VBlankIntrWait();
         scanKeys();
         u16 keys = keysHeld();
 
-        /* 清屏：使用 DMA 快速填充，避免 CPU 循环超出 VBlank 导致局部显示异常 */
-        DMA3COPY(&black, (void*)0x06000000, DMA16 | (240 * 160) | DMA_SRC_FIXED);
+        /* 擦除旧光标 */
+        DrawCursor(prevX, prevY, black, black);
 
         /* 按键移动鼠标图案 */
         if (keys & KEY_LEFT)  x--;
@@ -175,8 +184,8 @@ int main(void)
 
         DrawCursor(x, y, cursorColor, black);
 
-        /* 绘制顶部居中文字（最后绘制，保证可见） */
-        Unifont_DrawUtf8TextMode3(text, textX, textY, white);
+        prevX = x;
+        prevY = y;
     }
     return 0;
 }

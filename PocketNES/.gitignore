@@ -1,6 +1,11 @@
 build
 build_mb
+
 pocketnes_mb.elf
 pocketnes_mb.gba
 pocketnes.elf
 pocketnes.gba
+
+pnesmmw.cdb
+PocketNESMenu.gba
+PocketNESMenu.sav

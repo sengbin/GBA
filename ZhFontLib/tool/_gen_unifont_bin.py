@@ -1,6 +1,6 @@
 ﻿import sys
-src = r"d:\\GitCode\\GBA-Github\\中文字库\\unifont-17.0.03.hex"
-dst = r"d:\\GitCode\\GBA-Github\\Demo\\unifont16x16.bin"
+src = r"d:\\GitCode\\GBA-Github\\ZhFontLib\\tool\\unifont-17.0.03.hex"
+dst = r"d:\\GitCode\\GBA-Github\\ZhFontLib\\unifont16x16.bin"
 out = bytearray(0x10000 * 32)
 with open(src, "r", encoding="utf-8", errors="ignore") as f:
     for line in f:

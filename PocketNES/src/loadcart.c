@@ -671,17 +671,17 @@ void init_cache(u8* nes_header, int called_from)
 					depack(compsrc,compdest);
 
 					//now rearrange first 5 with last 8
-					swapmem(cachebase+16384*5,cachebase, 8*16384);
+					swapmem((u32*)(cachebase+16384*5),(u32*)cachebase, 8*16384);
 
 					//finaly swap page 3 and page D  (forgot why we did this)
-					simpleswap32(cachebase+3*16384,vrom_bank_2, 16384);
+					simpleswap32((u32*)(cachebase+3*16384),(u32*)vrom_bank_2, 16384);
 					
 					cache_end_of_rom = 13*16384+cachebase;	//okay to do because 208K > 192K
 					
 					//is this a 32k switching game?  Swap page 0,1 with pages E,F
 					if (page_size==32)
 					{
-						simpleswap32(novrom_bank, cachebase, 32768);
+						simpleswap32((u32*)novrom_bank, (u32*)cachebase, 32768);
 					}
 				}
 				else
@@ -703,7 +703,7 @@ void init_cache(u8* nes_header, int called_from)
 					depack(compsrc,compdest);
 
 					//now rearrange first 6 with last 8
-					swapmem( cachebase+16384*6, cachebase, 8*16384);
+					swapmem((u32*)(cachebase+16384*6), (u32*)cachebase, 8*16384);
 
 					cache_end_of_rom = 14*16384+cachebase;	//okay because 224K > 192K
 				}

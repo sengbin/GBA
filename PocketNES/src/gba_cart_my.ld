@@ -272,6 +272,8 @@ SECTIONS
 	{
 		*(.ewram)
 		*(SORT_BY_NAME(.ewram.*))
+		*(.ewram_data)
+		*(SORT_BY_NAME(.ewram_data.*))
 		. = ALIGN(4);  /* REQUIRED. LD is flaky without it. */
 		__ewram_end = ABSOLUTE(.);
 	}>ewram = 0xff

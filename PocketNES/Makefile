@@ -59,6 +59,7 @@ CFLAGS	:=	-g -Wall -Os\
  			-fomit-frame-pointer\
 			-ffast-math \
 			-std=c99 \
+			-fasm \
 			$(ARCH)
 
 CFLAGS	+=	$(INCLUDE)

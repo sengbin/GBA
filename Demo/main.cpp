@@ -9,6 +9,8 @@
 
 #include <gba.h>
 
+#include "UnifontFont.h"
+
 /**
  * @brief 在 Mode 3 帧缓冲写像素
  * @param x X 坐标（0-239）
@@ -67,7 +69,7 @@ static void DrawCursor(int x, int y, u16 color, u16 bg)
  * @param y 起始 Y（像素）
  * @param color 文本颜色
  */
-static void DrawText(const char* str, int x, int y, u16 color)
+[[maybe_unused]] static void DrawText(const char* str, int x, int y, u16 color)
 {
     /*
      * 完整 5x7 字库（索引 0 为空格，1..26 对应 A..Z）
@@ -143,12 +145,12 @@ int main(void)
     const u16 white = RGB5(31,31,31);
     const u16 cursorColor = RGB5(31,31,0); // 黄色
 
-    const char* text = "GBA DEMO"; /* 顶部显示的一行文字（建议使用大写字母） */
-    int len = 0; while (text[len]) ++len;
-    int textWidth = (len > 0) ? (len * 7 - 1) : 0; /* 每字符5像素宽 + 2间距 */
+    const char* text = u8"中文测试"; /* 顶部显示的一行文字（UTF-8） */
+    int textWidth = Unifont_GetUtf8TextWidth16(text);
     int textX = (240 - textWidth) / 2;
-    int textY = 14; /* 提高到 14 像素，避免被窗口边缘或 UI 遮挡 */
-    int minCursorY = textY + 8; /* 保留顶部安全区，避免光标遮挡文字 */
+    if (textX < 0) textX = 0;
+    int textY = 0; /* 最顶行 */
+    int minCursorY = textY + 16; /* 保留顶部安全区，避免光标遮挡文字 */
 
     while (1)
     {
@@ -174,7 +176,7 @@ int main(void)
         DrawCursor(x, y, cursorColor, black);
 
         /* 绘制顶部居中文字（最后绘制，保证可见） */
-        DrawText(text, textX, textY, white);
+        Unifont_DrawUtf8TextMode3(text, textX, textY, white);
     }
     return 0;
 }

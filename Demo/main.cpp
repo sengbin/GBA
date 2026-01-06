@@ -225,7 +225,6 @@ int main(void)
 
     while (1)
     {
-        VBlankIntrWait();
         scanKeys();
         u16 keys = keysHeld();
 
@@ -239,6 +238,8 @@ int main(void)
         if (x > 240 - 16) x = 240 - 16;
         if (y < 0) y = 0;
         if (y > 160 - 16) y = 160 - 16;
+
+        VBlankIntrWait();
 
         SetCursorSpritePos(x, y);
     }

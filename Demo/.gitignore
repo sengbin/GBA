@@ -2,6 +2,3 @@ gba-demo.elf
 gba-demo.gba
 main.o
 gba-demo.sav
-
-unifont16x16.o
-UnifontFont.o

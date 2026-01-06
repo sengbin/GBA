@@ -7,20 +7,28 @@ CFLAGS := -mthumb -mthumb-interwork -O2 -ffunction-sections -fdata-sections -Wal
 INCLUDES := -I/c/devkitPro/libgba/include
 CXXFLAGS := $(CFLAGS) -std=gnu++17 -fno-exceptions -fno-rtti $(INCLUDES)
 
-TARGET := ZhFontLib.a
+OUTDIR := bin
+OBJDIR := obj
+TARGET := $(OUTDIR)/ZhFontLib.a
 SOURCES_CPP := UnifontFont.cpp
 SOURCES_S := unifont16x16.S
-OBJECTS := $(SOURCES_CPP:.cpp=.o) $(SOURCES_S:.S=.o)
+OBJECTS := $(addprefix $(OBJDIR)/,$(SOURCES_CPP:.cpp=.o) $(SOURCES_S:.S=.o))
 
 all: $(TARGET)
 
-%.o: %.cpp
+$(OBJDIR)/%.o: %.cpp | $(OBJDIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-%.o: %.S
+$(OBJDIR)/%.o: %.S | $(OBJDIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(TARGET): $(OBJECTS)
+$(OUTDIR):
+	mkdir -p $(OUTDIR)
+
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
+
+$(TARGET): $(OBJECTS) | $(OUTDIR)
 	$(AR) rcs $(TARGET) $(OBJECTS)
 
 clean:

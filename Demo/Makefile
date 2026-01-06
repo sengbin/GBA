@@ -10,15 +10,20 @@ CXXFLAGS := $(CFLAGS) -std=gnu++17 -fno-exceptions -fno-rtti $(INCLUDES)
 LIBS := -L/c/devkitPro/libgba/lib -lgba
 LDFLAGS := -specs=gba.specs
 
+OUTDIR := bin
+OBJDIR := obj
 TARGET := gba-demo
 SOURCES_CPP := main.cpp
-OBJECTS := $(SOURCES_CPP:.cpp=.o)
+OBJECTS := $(addprefix $(OBJDIR)/,$(SOURCES_CPP:.cpp=.o))
 
-FONTLIB := ../ZhFontLib/ZhFontLib.a
+FONTLIB := ../ZhFontLib/bin/ZhFontLib.a
 
-all: $(TARGET).gba
+ELF := $(OUTDIR)/$(TARGET).elf
+GBA := $(OUTDIR)/$(TARGET).gba
 
-%.o: %.cpp
+all: $(GBA)
+
+$(OBJDIR)/%.o: %.cpp | $(OBJDIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 %.o: %.S
@@ -27,11 +32,17 @@ all: $(TARGET).gba
 $(FONTLIB):
 	$(MAKE) -C ../ZhFontLib
 
-$(TARGET).elf: $(OBJECTS) $(FONTLIB)
-	$(CXX) $(OBJECTS) $(FONTLIB) $(LDFLAGS) $(LIBS) -o $(TARGET).elf
+$(OUTDIR):
+	mkdir -p $(OUTDIR)
 
-$(TARGET).gba: $(TARGET).elf
-	$(OBJCOPY) -O binary $(TARGET).elf $(TARGET).gba
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
+
+$(ELF): $(OBJECTS) $(FONTLIB) | $(OUTDIR)
+	$(CXX) $(OBJECTS) $(FONTLIB) $(LDFLAGS) $(LIBS) -o $(ELF)
+
+$(GBA): $(ELF)
+	$(OBJCOPY) -O binary $(ELF) $(GBA)
 
 clean:
-	rm -f $(OBJECTS) $(TARGET).elf $(TARGET).gba
+	rm -f $(OBJECTS) $(ELF) $(GBA)

@@ -1,4 +1,5 @@
 import os
+import urllib.request
 
 # 5x7 基础字形表（自定义简单风格），用于生成更统一的 ASCII 6x12 点阵。
 # 说明：每个字形为 7 行，每行 5 列，'1' 表示点亮。
@@ -1009,7 +1010,10 @@ def _draw_char(ch):
     return _draw_char('?')
 
 
-def gen(out_path: str):
+_U8G2_6X12_BDF_URL = "https://raw.githubusercontent.com/olikraus/u8g2/refs/heads/master/tools/font/bdf/6x12.bdf"
+
+
+def _gen_custom(out_path: str):
     # 0x20-0x7F 共 96 个字符，最后一个 DEL 留空
     data = bytearray()
     for code in range(0x20, 0x80):
@@ -1023,6 +1027,142 @@ def gen(out_path: str):
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     with open(out_path, 'wb') as f:
         f.write(data)
+
+
+def _fetch_text_from_url(url: str) -> str:
+    with urllib.request.urlopen(url) as resp:
+        data = resp.read()
+    return data.decode('utf-8', errors='replace')
+
+
+def _normalize_bdf_row_byte(row_byte: int) -> int:
+    # ZhFont.cpp 读取 6 列：bit7..bit2，对应 col 0..5。
+    # BDF 单字节行通常已左对齐（bit7 为最左），这里额外做一次归一化。
+    b = row_byte & 0xFF
+    if (b & 0x03) != 0 and (b & 0xC0) == 0:
+        b = (b << 2) & 0xFC
+    return b & 0xFC
+
+
+def _parse_bdf_extract_ascii_6x12(bdf_text: str) -> dict:
+    glyphs: dict[int, list[int]] = {}
+
+    encoding = None
+    bbx_w = None
+    bbx_h = None
+    in_bitmap = False
+    bitmap_rows: list[str] = []
+
+    def _finish_glyph():
+        nonlocal encoding, bbx_w, bbx_h, in_bitmap, bitmap_rows
+
+        if encoding is None:
+            return
+        if encoding < 0x20 or encoding > 0x7E:
+            return
+        if bbx_w is None or bbx_h is None:
+            return
+
+        rows: list[int] = []
+        for row_hex in bitmap_rows:
+            row_hex = row_hex.strip()
+            if not row_hex:
+                rows.append(0)
+                continue
+            row_bytes = bytes.fromhex(row_hex)
+            row_byte = int(row_bytes[0]) if len(row_bytes) > 0 else 0
+            rows.append(_normalize_bdf_row_byte(row_byte))
+
+        # 保持固定 12 行（不足补 0，多余截断）
+        if len(rows) < 12:
+            rows.extend([0] * (12 - len(rows)))
+        elif len(rows) > 12:
+            rows = rows[:12]
+
+        glyphs[int(encoding)] = rows
+
+    for raw in bdf_text.splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+
+        if line.startswith('STARTCHAR'):
+            encoding = None
+            bbx_w = None
+            bbx_h = None
+            in_bitmap = False
+            bitmap_rows = []
+            continue
+
+        if line.startswith('ENCODING'):
+            parts = line.split()
+            if len(parts) >= 2:
+                try:
+                    encoding = int(parts[1])
+                except ValueError:
+                    encoding = None
+            continue
+
+        if line.startswith('BBX'):
+            parts = line.split()
+            if len(parts) >= 3:
+                try:
+                    bbx_w = int(parts[1])
+                    bbx_h = int(parts[2])
+                except ValueError:
+                    bbx_w = None
+                    bbx_h = None
+            continue
+
+        if line == 'BITMAP':
+            in_bitmap = True
+            bitmap_rows = []
+            continue
+
+        if line == 'ENDCHAR':
+            _finish_glyph()
+            encoding = None
+            bbx_w = None
+            bbx_h = None
+            in_bitmap = False
+            bitmap_rows = []
+            continue
+
+        if in_bitmap:
+            bitmap_rows.append(line)
+
+    return glyphs
+
+
+def _gen_from_u8g2_bdf(out_path: str):
+    bdf_text = _fetch_text_from_url(_U8G2_6X12_BDF_URL)
+    glyphs = _parse_bdf_extract_ascii_6x12(bdf_text)
+
+    # 0x20-0x7F 共 96 个字符，最后一个 DEL 留空
+    data = bytearray()
+    fallback = glyphs.get(0x3F, [0] * 12)  # '?' 兜底
+
+    for code in range(0x20, 0x80):
+        if code == 0x7F:
+            rows = [0] * 12
+        else:
+            rows = glyphs.get(code, fallback)
+
+        if len(rows) != 12:
+            raise RuntimeError('BDF glyph height mismatch')
+        for b in rows:
+            data.append(int(b) & 0xFF)
+
+    if len(data) != 1152:
+        raise RuntimeError('ASC12 size mismatch')
+
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    with open(out_path, 'wb') as f:
+        f.write(data)
+
+
+def gen(out_path: str):
+    _gen_from_u8g2_bdf(out_path)
 
 
 if __name__ == '__main__':

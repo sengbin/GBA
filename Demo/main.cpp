@@ -9,7 +9,7 @@
 
 #include <gba.h>
 
-#include "UnifontFont.h"
+#include "ZhFont.h"
 
 /**
  * @brief OAM 精灵属性（本地定义，避免依赖特定宏）
@@ -208,13 +208,13 @@ int main(void)
     /* 清屏：只在初始化时清一次，背景文字绘制一次 */
     DMA3COPY(&black, (void*)0x06000000, DMA16 | (240 * 160) | DMA_SRC_FIXED);
 
-    const char* text = u8"中文测试程序abcABCａｂｃ"; /* 顶部显示的一行文字（UTF-8） */
-    int textWidth = Unifont_GetUtf8TextWidth16(text);
+    const char* text = u8"中文测试程序abcABC"; /* 顶部显示的一行文字（UTF-8） */
+    int textWidth = ZhFont_GetUtf8TextWidth12(text);
     int textX = (240 - textWidth) / 2;
     if (textX < 0) textX = 0;
     int textY = 0; /* 最顶行 */
 
-    Unifont_DrawUtf8TextMode3(text, textX, textY, white);
+    ZhFont_DrawUtf8TextMode3(text, textX, textY, white);
 
     InitOam();
     InitCursorSpritePalette();

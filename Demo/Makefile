@@ -4,7 +4,7 @@ OBJCOPY := /c/devkitPro/devkitARM/bin/arm-none-eabi-objcopy
 
 CFLAGS := -mthumb -mthumb-interwork -O2 -ffunction-sections -fdata-sections -Wall
 # 包含 libgba 头文件目录
-INCLUDES := -I/c/devkitPro/libgba/include -I../ZhFontLib
+INCLUDES := -I/c/devkitPro/libgba/include -I../ZhFont
 CXXFLAGS := $(CFLAGS) -std=gnu++17 -fno-exceptions -fno-rtti $(INCLUDES)
 # 链接时加入 libgba 库目录与库
 LIBS := -L/c/devkitPro/libgba/lib -lgba
@@ -16,7 +16,7 @@ TARGET := gba-demo
 SOURCES_CPP := main.cpp
 OBJECTS := $(addprefix $(OBJDIR)/,$(SOURCES_CPP:.cpp=.o))
 
-FONTLIB := ../ZhFontLib/bin/ZhFontLib.a
+FONTLIB := ../ZhFont/bin/zhfont.a
 
 ELF := $(OUTDIR)/$(TARGET).elf
 GBA := $(OUTDIR)/$(TARGET).gba
@@ -30,7 +30,7 @@ $(OBJDIR)/%.o: %.cpp | $(OBJDIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(FONTLIB):
-	$(MAKE) -C ../ZhFontLib
+	$(MAKE) -C ../ZhFont
 
 $(OUTDIR):
 	mkdir -p $(OUTDIR)

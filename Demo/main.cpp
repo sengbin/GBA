@@ -10,6 +10,7 @@
 #include <gba.h>
 
 #include "ZhFont.h"
+#include <stdio.h>
 
 /**
  * @brief OAM 精灵属性（本地定义，避免依赖特定宏）
@@ -208,13 +209,20 @@ int main(void)
     /* 清屏：只在初始化时清一次，背景文字绘制一次 */
     DMA3COPY(&black, (void*)0x06000000, DMA16 | (240 * 160) | DMA_SRC_FIXED);
 
-    const char* text = u8"中文测试程序abcABCａｂｃＡＢＣ"; /* 顶部显示的一行文字（UTF-8） */
-    int textWidth = ZhFont_GetUtf8TextWidth12(text);
-    int textX = (240 - textWidth) / 2;
-    if (textX < 0) textX = 0;
-    int textY = 0; /* 最顶行 */
+    /* 在屏幕可容纳的每一行上绘制文本，逐行靠左显示 */
+    const int lineHeight = 12; /* 文字高度为 12 像素 */
+    const int maxLines = 160 / lineHeight; /* 屏幕垂直可容纳的行数 */
+    int startY = 0; /* 从最顶行开始绘制 */
 
-    ZhFont_DrawUtf8TextMode3(text, textX, textY, white);
+    for (int i = 0; i < maxLines; ++i)
+    {
+        char buf[64];
+        /* 构造示例行文本：第N行：示例文本（UTF-8） */
+        snprintf(buf, sizeof(buf), u8"第%d行：示例文本", i + 1);
+        int textX = 0; /* 靠左显示 */
+        int textY = startY + i * lineHeight;
+        ZhFont_DrawUtf8TextMode3(buf, textX, textY, white);
+    }
 
     InitOam();
     InitCursorSpritePalette();

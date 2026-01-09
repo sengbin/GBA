@@ -151,3 +151,28 @@ ZhFont_DrawGb2312TextMode3(gb2312Text, 10, 10, RGB5(31, 31, 0));
 - `tool/_gen_asc12.py`：生成 ASCII 6x12 字模数据
 - `tool/_gen_gb2312_table.py`：生成 Unicode→GB2312 映射表头文件
 
+---
+**更新日志**
+
+- 2026-01-10：已将由 D:\GitCode\GBA-ZhFont-Github 构建的静态库复制到本目录，仅复制 `zhfont.a`（未包含源码/头文件）。
+- 2026-01-10：新增 API：`ZhFont_DrawUtf8Text_Typing(const char* utf8, int x, int y, u16 color, int framesPerChar)`。
+	- 功能：在 Mode3 帧缓冲上以“打字机”效果逐字显示 UTF-8 文本（内部复用 `ZhFont_DrawUtf8TextMode3`）。
+
+使用示例：
+
+```cpp
+#include <gba.h>
+#include "ZhFont.h"
+
+// 在初始化或主循环中调用一次
+ZhFont_DrawUtf8Text_Typing("你好,GBA", 0, 0, RGB5(31,31,31), 6);
+```
+
+若需重新构建库，请在源仓库执行：
+
+```bash
+cd D:/GitCode/GBA-ZhFont-Github
+make
+```
+
+本目录仅包含：`zhfont.a`（二进制库）。如需头文件或源码，请从 `D:/GitCode/GBA-ZhFont-Github` 获取源码仓库。

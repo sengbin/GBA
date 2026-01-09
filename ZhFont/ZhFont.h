@@ -47,6 +47,16 @@ int ZhFont_GetUtf8TextWidth12(const char* utf8);
  */
 void ZhFont_DrawUtf8TextMode3(const char* utf8, int x, int y, u16 color);
 
+/**
+ * @brief 在 Mode3 帧缓冲上以“打字机”效果逐字显示 UTF-8 文本
+ * @param utf8 UTF-8 编码字符串（以 '\0' 结束）
+ * @param x 起始像素 X
+ * @param y 起始像素 Y
+ * @param color 文本颜色（BGR555）
+ * @param framesPerChar 每个字符之间等待的 VBlank 帧数
+ */
+void ZhFont_DrawUtf8Text_Typing(const char* utf8, int x, int y, u16 color, int framesPerChar);
+
 #ifdef __cplusplus
 }
 #endif

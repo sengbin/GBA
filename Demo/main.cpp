@@ -17,9 +17,8 @@ int main()
     }
 
     // 使用打字机效果显示文本
-    const char* text = "你好,GBA哈哈哈哈哈哈";
-    ZhFont_DrawUtf8Text_Typing(text, 0, 0, RGB5(31, 31, 31), 6);
-    
+    ZhFont_DrawUtf8Text_Typing((char*)"欢迎来到GBA世界，现在你将开始你的冒险。", 0, 0, RGB5(31, 31, 31), 6);
+    ZhFont_DrawUtf8Text_Typing((char*)"准备好了吗？", 0, 12, RGB5(31, 31, 31), 6);
     while(1) {
         VBlankIntrWait();
     }

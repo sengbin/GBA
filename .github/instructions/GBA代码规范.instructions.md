@@ -10,7 +10,8 @@ applyTo: '**'
 - o 文件输出到 obj 目录
 
 3. GBA项目资源文件目录规范
-- 资源文件放在 res 目录下，按类型分子目录存放，如 res/images, res/sounds 等
+- 资源文件放在 res 目录下，按类型分子目录存放
+- 目录格式：res/map, res/images, res/sounds
 
 4. GBA项目源代码目录规范
 - 源代码文件放在 src 目录下，按模块分子目录存放，如 src/graphics, src/audio 等

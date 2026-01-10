@@ -30,6 +30,91 @@ extern const unsigned short g_PlayerObjFrame0TileId;
 extern const unsigned short g_PlayerObjFrame1TileId;
 extern const unsigned char g_PlayerObjTiles[];
 
+extern const unsigned char _binary_obj_morningmix_pcm_start[];
+extern const unsigned char _binary_obj_morningmix_pcm_end[];
+
+static volatile u32 g_BgmTimer1Overflow = 0;
+static u32 g_BgmSampleCount = 0;
+
+/// <summary>
+/// Timer1 溢出中断：用于累计采样计数高 16 位。
+/// </summary>
+void OnBgmTimer1Overflow()
+{
+    g_BgmTimer1Overflow++;
+}
+
+/// <summary>
+/// 获取已播放的采样数（基于 Timer0 溢出 -> Timer1 级联计数）。
+/// </summary>
+/// <returns>已播放采样数（1 sample = 1 字节）</returns>
+static inline u32 GetBgmSamplesPlayed()
+{
+    const u16 oldIme = REG_IME;
+    REG_IME = 0;
+    const u16 t1 = REG_TM1CNT_L;
+    const u32 hi = g_BgmTimer1Overflow;
+    REG_IME = oldIme;
+    return (hi << 16) | (u32)t1;
+}
+
+/// <summary>
+/// 启动背景音乐（DirectSound A + DMA1 + Timer0）。
+/// </summary>
+static void StartBgm()
+{
+    if(g_BgmSampleCount == 0) {
+        g_BgmSampleCount = (u32)(_binary_obj_morningmix_pcm_end - _binary_obj_morningmix_pcm_start);
+    }
+
+    // 先停 DMA 与 Timer
+    REG_DMA1CNT = 0;
+    REG_TM0CNT_H = 0;
+    REG_TM1CNT_H = 0;
+
+    // 采样计数清零（Timer1 级联计数 Timer0 溢出次数）
+    g_BgmTimer1Overflow = 0;
+
+    // Sound 主开关与 DirectSound A 设置
+    REG_SOUNDCNT_X = SNDSTAT_ENABLE;
+    REG_SOUNDCNT_H = (u16)(DSOUNDCTRL_A100 | DSOUNDCTRL_AR | DSOUNDCTRL_AL | DSOUNDCTRL_ATIMER(0) | DSOUNDCTRL_ARESET);
+
+    // Timer0：16384Hz（16.78MHz / (65536-0xFC00) = 16384）
+    REG_TM0CNT_L = 0xFC00;
+
+    // Timer1：级联计数 Timer0 的溢出次数（用于统计播放进度）
+    REG_TM1CNT_L = 0;
+
+    // DMA1：喂入 FIFO A
+    REG_DMA1SAD = (u32)_binary_obj_morningmix_pcm_start;
+    REG_DMA1DAD = (u32)&REG_FIFO_A;
+    REG_DMA1CNT = (u32)(DMA_DST_FIXED | DMA_REPEAT | DMA_SPECIAL | DMA32 | DMA_ENABLE | 4);
+
+    // 开启计时
+    REG_TM1CNT_H = (u16)(TIMER_COUNT | TIMER_IRQ | TIMER_START);
+    REG_TM0CNT_H = (u16)(TIMER_START);
+}
+
+/// <summary>
+/// 背景音乐循环检查：接近结尾时重启，避免 DMA 越界读取。
+/// </summary>
+static inline void UpdateBgmLoop()
+{
+    if(g_BgmSampleCount == 0) {
+        return;
+    }
+
+    const u32 guardSamples = 512;
+    if(g_BgmSampleCount <= guardSamples) {
+        return;
+    }
+
+    const u32 played = GetBgmSamplesPlayed();
+    if(played >= (g_BgmSampleCount - guardSamples)) {
+        StartBgm();
+    }
+}
+
 #if 0
 
 static volatile u16* GetPageBuffer(bool pageBit)
@@ -267,6 +352,9 @@ int main()
 {
     irqInit();
     irqEnable(IRQ_VBLANK);
+
+    irqSet(IRQ_TIMER1, OnBgmTimer1Overflow);
+    irqEnable(IRQ_TIMER1);
 
     SetMode(MODE_4 | BG2_ON);
 
@@ -627,8 +715,12 @@ int main()
 
     int animTick = 0;
 
+    StartBgm();
+
     while(1) {
         VBlankIntrWait();
+
+        UpdateBgmLoop();
 
         scanKeys();
         const u16 keys = keysHeld();

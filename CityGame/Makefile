@@ -13,7 +13,7 @@ OBJDIR := obj
 TARGET := citygame
 
 SOURCES_CPP := src/main.cpp src/generated_assets.cpp
-OBJECTS := $(patsubst src/%.cpp,$(OBJDIR)/%.o,$(SOURCES_CPP))
+OBJECTS := $(patsubst src/%.cpp,$(OBJDIR)/%.o,$(SOURCES_CPP)) $(OBJDIR)/morningmix.o
 
 ELF := $(OUTDIR)/$(TARGET).elf
 GBA := $(OUTDIR)/$(TARGET).gba
@@ -22,6 +22,12 @@ all: $(GBA)
 
 src/generated_assets.cpp: tools/build_assets.py res/Map/map.tmx res/Map/roguelikeSheet_transparent.png res/Tiles/tile_0008.png res/Tiles/tile_0009.png
 	python tools/build_assets.py
+
+$(OBJDIR)/morningmix.pcm: tools/build_audio.py res/Ogg/morningmix.ogg | $(OBJDIR)
+	python tools/build_audio.py
+
+$(OBJDIR)/morningmix.o: $(OBJDIR)/morningmix.pcm | $(OBJDIR)
+	$(OBJCOPY) -I binary -O elf32-littlearm -B arm --rename-section .data=.rodata,alloc,load,readonly,data,contents $< $@
 
 $(OBJDIR)/%.o: src/%.cpp | $(OBJDIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
@@ -39,4 +45,4 @@ $(GBA): $(ELF)
 	$(OBJCOPY) -O binary $(ELF) $(GBA)
 
 clean:
-	rm -f $(OBJECTS) $(ELF) $(GBA)
+	rm -f $(OBJECTS) $(ELF) $(GBA) $(OBJDIR)/morningmix.pcm

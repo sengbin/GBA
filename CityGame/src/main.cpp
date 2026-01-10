@@ -607,16 +607,17 @@ int main()
         int wantBufY = bufY;
 
         // 保证可视范围落在 [buf, buf+size) 内
+        // 注意：当像素滚动不是 8 的整数倍时，屏幕边缘会额外露出 1 列/行 8x8 tile，需要一并覆盖，否则会出现最右竖条/最下横条跳动。
         if(camTileX8 < bufX) {
             wantBufX = camTileX8;
-        } else if(camTileX8 + 29 > bufX + 63) {
-            wantBufX = camTileX8 - 34;
+        } else if(camTileX8 + 30 > bufX + 63) {
+            wantBufX = camTileX8 - 33;
         }
 
         if(camTileY8 < bufY) {
             wantBufY = camTileY8;
-        } else if(camTileY8 + 19 > bufY + 31) {
-            wantBufY = camTileY8 - 12;
+        } else if(camTileY8 + 20 > bufY + 31) {
+            wantBufY = camTileY8 - 11;
         }
 
         if(wantBufX < 0) wantBufX = 0;

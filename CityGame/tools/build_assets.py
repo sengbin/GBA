@@ -147,7 +147,7 @@ def _remove_white_outline(im_rgba: Image.Image) -> Image.Image:
 def main() -> None:
     project_dir = Path(__file__).resolve().parents[1]
 
-    tmx_path = project_dir / "Map" / "map.tmx"
+    tmx_path = project_dir / "res" / "Map" / "map.tmx"
     if not tmx_path.exists():
         raise FileNotFoundError(str(tmx_path))
 
@@ -206,8 +206,8 @@ def main() -> None:
     tileset_rgba = Image.open(tileset_png_path).convert("RGBA")
 
     # 角色两帧
-    player0_path = project_dir / "Images" / "Tiles" / "tile_0008.png"
-    player1_path = project_dir / "Images" / "Tiles" / "tile_0009.png"
+    player0_path = project_dir / "res" / "Tiles" / "tile_0008.png"
+    player1_path = project_dir / "res" / "Tiles" / "tile_0009.png"
     if not player0_path.exists():
         raise FileNotFoundError(str(player0_path))
     if not player1_path.exists():

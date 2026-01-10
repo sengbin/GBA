@@ -20,7 +20,7 @@ GBA := $(OUTDIR)/$(TARGET).gba
 
 all: $(GBA)
 
-src/generated_assets.cpp: tools/build_assets.py Map/map.tmx Map/roguelikeSheet_transparent.png Images/Tiles/tile_0008.png Images/Tiles/tile_0009.png
+src/generated_assets.cpp: tools/build_assets.py res/Map/map.tmx res/Map/roguelikeSheet_transparent.png res/Tiles/tile_0008.png res/Tiles/tile_0009.png
 	python tools/build_assets.py
 
 $(OBJDIR)/%.o: src/%.cpp | $(OBJDIR)

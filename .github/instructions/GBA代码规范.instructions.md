@@ -20,3 +20,4 @@ applyTo: '**'
 7. GBA项目都要创建 README.md 文件，说明项目功能和使用方法。
 8. GBA项目都要使用 libgba 库，方便调用 GBA 硬件功能。
 9. GBA项目都要使用 devkitPro 工具链进行编译和链接。
+10. 每次修改完代码都要执行 make clean; make，确保没有编译错误和链接错误。

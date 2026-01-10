@@ -508,6 +508,16 @@ static void SetPlayerObjTile(u16 tileId)
     g_Oam[0].attr2 = (u16)((g_Oam[0].attr2 & 0xFC00) | (tileId & 0x03FF));
 }
 
+static void SetPlayerObjHFlip(bool hflip)
+{
+    // 普通 OBJ：attr1 bit12 为水平翻转
+    if(hflip) {
+        g_Oam[0].attr1 = (u16)(g_Oam[0].attr1 | 0x1000);
+    } else {
+        g_Oam[0].attr1 = (u16)(g_Oam[0].attr1 & ~0x1000);
+    }
+}
+
 int main()
 {
     irqInit();
@@ -564,6 +574,8 @@ int main()
 
     InitPlayerObj(120 - 16, 80 - 16, g_PlayerObjFrame0TileId);
 
+    bool faceLeft = false;
+
     int animTick = 0;
 
     while(1) {
@@ -579,6 +591,13 @@ int main()
         if(keys & KEY_RIGHT) dx += 1;
         if(keys & KEY_UP) dy -= 1;
         if(keys & KEY_DOWN) dy += 1;
+
+        // 角色朝向：向左走翻转，向右走不翻转
+        if(dx < 0) {
+            faceLeft = true;
+        } else if(dx > 0) {
+            faceLeft = false;
+        }
 
         if(dx != 0 || dy != 0) {
             playerX += dx;
@@ -688,6 +707,7 @@ int main()
         if(sprY > 160) sprY = 160;
         g_Oam[0].attr0 = (u16)((g_Oam[0].attr0 & 0xFF00) | (sprY & 0x00FF));
         g_Oam[0].attr1 = (u16)((g_Oam[0].attr1 & 0xFE00) | (sprX & 0x01FF));
+        SetPlayerObjHFlip(faceLeft);
 
         // 走路帧切换
         const bool walking = (dx != 0 || dy != 0);

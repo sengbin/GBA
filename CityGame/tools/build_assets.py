@@ -91,6 +91,59 @@ def _crop_tileset_tile(tileset_rgba: Image.Image, tile_index: int, columns: int,
     return tileset_rgba.crop((x, y, x + tile_w, y + tile_h))
 
 
+def _remove_white_outline(im_rgba: Image.Image) -> Image.Image:
+    """去掉角色白色描边（仅移除贴近透明区域的纯白像素）。"""
+
+    if im_rgba.mode != "RGBA":
+        im_rgba = im_rgba.convert("RGBA")
+
+    w, h = im_rgba.size
+
+    def is_outline_color(r: int, g: int, b: int) -> bool:
+        # 允许浅灰/近白，且要求低色差，避免误伤彩色像素
+        if r < 230 or g < 230 or b < 230:
+            return False
+        mx = max(r, g, b)
+        mn = min(r, g, b)
+        return (mx - mn) <= 30
+
+    # 多次迭代剥离：第一圈描边去掉后，第二圈才会贴近透明
+    dst = list(im_rgba.getdata())
+    for _ in range(2):
+        src = dst[:]
+
+        def is_transparent(ix: int, iy: int) -> bool:
+            if ix < 0 or iy < 0 or ix >= w or iy >= h:
+                return True
+            return src[iy * w + ix][3] == 0
+
+        for y in range(h):
+            for x in range(w):
+                r, g, b, a = src[y * w + x]
+                if a == 0:
+                    continue
+                if not is_outline_color(r, g, b):
+                    continue
+
+                near_transparent = (
+                    is_transparent(x - 1, y - 1)
+                    or is_transparent(x, y - 1)
+                    or is_transparent(x + 1, y - 1)
+                    or is_transparent(x - 1, y)
+                    or is_transparent(x + 1, y)
+                    or is_transparent(x - 1, y + 1)
+                    or is_transparent(x, y + 1)
+                    or is_transparent(x + 1, y + 1)
+                )
+
+                if near_transparent:
+                    dst[y * w + x] = (r, g, b, 0)
+
+    out = Image.new("RGBA", (w, h))
+    out.putdata(dst)
+    return out
+
+
 def main() -> None:
     project_dir = Path(__file__).resolve().parents[1]
 
@@ -160,8 +213,8 @@ def main() -> None:
     if not player1_path.exists():
         raise FileNotFoundError(str(player1_path))
 
-    player0_rgba = Image.open(player0_path).convert("RGBA")
-    player1_rgba = Image.open(player1_path).convert("RGBA")
+    player0_rgba = _remove_white_outline(Image.open(player0_path).convert("RGBA"))
+    player1_rgba = _remove_white_outline(Image.open(player1_path).convert("RGBA"))
 
     # 生成调色板源图：把所有会用到的 tile 与角色帧拼起来，再量化为 256 色
     composite_w = len(used_gid_list) * tile_w + player0_rgba.size[0] + player1_rgba.size[0]

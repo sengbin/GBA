@@ -406,6 +406,55 @@ static inline u16 GetBgTileIdForWorld(int layerIndex, int worldTileX8, int world
     return (u16)(base + q);
 }
 
+/// <summary>
+/// 判断 16x16 世界格子是否为障碍物。
+/// </summary>
+/// <param name="cellX16">16x16 格子 X</param>
+/// <param name="cellY16">16x16 格子 Y</param>
+/// <returns>为 true 表示不可穿越</returns>
+static inline bool IsSolidCell16(int cellX16, int cellY16)
+{
+    if(cellX16 < 0 || cellY16 < 0 || cellX16 >= g_MapWidth || cellY16 >= g_MapHeight) {
+        return true;
+    }
+
+    // 约定：Objects 与 Doors/windows/roof 图层都作为障碍物
+    const int idx = cellY16 * g_MapWidth + cellX16;
+    if(g_Layer2[idx] != 0) {
+        return true;
+    }
+    if(g_Layer3[idx] != 0) {
+        return true;
+    }
+    return false;
+}
+
+/// <summary>
+/// 判断角色在指定像素坐标是否会与障碍物碰撞。
+/// </summary>
+/// <param name="px">角色中心像素 X</param>
+/// <param name="py">角色中心像素 Y</param>
+/// <returns>为 true 表示会碰撞，不能移动到该位置</returns>
+static inline bool IsPlayerBlocked(int px, int py)
+{
+    // 采用脚下碰撞盒（更贴近实际行走）
+    const int centerX = px;
+    const int centerY = py + 8;
+    const int halfW = 6;
+    const int halfH = 6;
+
+    const int x0 = centerX - halfW;
+    const int x1 = centerX + halfW;
+    const int y0 = centerY - halfH;
+    const int y1 = centerY + halfH;
+
+    if(IsSolidCell16(x0 / 16, y0 / 16)) return true;
+    if(IsSolidCell16(x1 / 16, y0 / 16)) return true;
+    if(IsSolidCell16(x0 / 16, y1 / 16)) return true;
+    if(IsSolidCell16(x1 / 16, y1 / 16)) return true;
+    return false;
+}
+
 static inline int Wrap64(int v)
 {
     return v & 63;
@@ -599,9 +648,22 @@ int main()
             faceLeft = false;
         }
 
-        if(dx != 0 || dy != 0) {
-            playerX += dx;
-            playerY += dy;
+        bool moved = false;
+        if(dx != 0) {
+            const int nextX = playerX + dx;
+            if(!IsPlayerBlocked(nextX, playerY)) {
+                playerX = nextX;
+                moved = true;
+            }
+        }
+        if(dy != 0) {
+            const int nextY = playerY + dy;
+            if(!IsPlayerBlocked(playerX, nextY)) {
+                playerY = nextY;
+                moved = true;
+            }
+        }
+        if(moved) {
             animTick++;
         }
 

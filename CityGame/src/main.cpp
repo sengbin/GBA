@@ -289,10 +289,10 @@ int main()
         int dx = 0;
         int dy = 0;
 
-        if(keys & KEY_LEFT) dx -= 4;
-        if(keys & KEY_RIGHT) dx += 4;
-        if(keys & KEY_UP) dy -= 4;
-        if(keys & KEY_DOWN) dy += 4;
+        if(keys & KEY_LEFT) dx -= 1;
+        if(keys & KEY_RIGHT) dx += 1;
+        if(keys & KEY_UP) dy -= 1;
+        if(keys & KEY_DOWN) dy += 1;
 
         if(dx != 0 || dy != 0) {
             playerX += dx;
@@ -327,7 +327,7 @@ int main()
         const bool walking = (dx != 0 || dy != 0);
         const unsigned char* frame = g_PlayerFrame0;
         if(walking) {
-            frame = ((animTick / 8) & 1) ? g_PlayerFrame1 : g_PlayerFrame0;
+            frame = ((animTick / 12) & 1) ? g_PlayerFrame1 : g_PlayerFrame0;
         }
 
         const int spriteX = 120 - (g_PlayerWidth / 2);
@@ -575,10 +575,10 @@ int main()
         int dx = 0;
         int dy = 0;
 
-        if(keys & KEY_LEFT) dx -= 4;
-        if(keys & KEY_RIGHT) dx += 4;
-        if(keys & KEY_UP) dy -= 4;
-        if(keys & KEY_DOWN) dy += 4;
+        if(keys & KEY_LEFT) dx -= 1;
+        if(keys & KEY_RIGHT) dx += 1;
+        if(keys & KEY_UP) dy -= 1;
+        if(keys & KEY_DOWN) dy += 1;
 
         if(dx != 0 || dy != 0) {
             playerX += dx;
@@ -691,7 +691,7 @@ int main()
         // 走路帧切换
         const bool walking = (dx != 0 || dy != 0);
         if(walking) {
-            const u16 tileId = (((animTick / 6) & 1) != 0) ? g_PlayerObjFrame1TileId : g_PlayerObjFrame0TileId;
+            const u16 tileId = (((animTick / 12) & 1) != 0) ? g_PlayerObjFrame1TileId : g_PlayerObjFrame0TileId;
             SetPlayerObjTile(tileId);
         } else {
             SetPlayerObjTile(g_PlayerObjFrame0TileId);

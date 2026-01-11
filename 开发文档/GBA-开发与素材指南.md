@@ -18,8 +18,6 @@
 - grit（GBA 图像/tiles 工具，可选）：https://www.coranac.com/projects/grit/
 - Kenney（高质量免费游戏素材）：https://kenney.nl/assets ；itch.io 页面：https://kenney.itch.io/
 - OpenGameArt（开源素材库）：https://opengameart.org/
-- FFmpeg：https://ffmpeg.org/download.html
-
-> 说明：使用第三方素材前请查看素材许可（Kenney 通常为 CC0，但不同包可能不同）。
+- FFmpeg（音频转换工具）：https://ffmpeg.org/download.html
 
 ---
